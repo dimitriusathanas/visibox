@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Virtual Fridge",
+    "slug": "virtual-fridge",
+    "scheme": "virtualfridge",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.virtualfridge.app"
+    },
+    "android": {
+      "package": "com.virtualfridge.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "Virtual Fridge",
+      "shortName": "Fridge",
+      "themeColor": "#0D7A80",
+      "backgroundColor": "#EEF3F6"
+    },
+    "plugins": [
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Hold the mic button to ask the fridge assistant something."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Take a photo of a grocery receipt to add the food to your fridge.",
+          "photosPermission": "Choose a photo of a grocery receipt to add the food to your fridge.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-localization"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+# Minimal Supabase CLI config. `supabase link --project-ref <ref>` connects it
+# to your project; the migration and functions deploy from here.
+project_id = "virtual-fridge"
+
+[functions.receipt]
+verify_jwt = true
+
+[functions.recipes]
+verify_jwt = true
+
+[functions.assistant]
+verify_jwt = true
