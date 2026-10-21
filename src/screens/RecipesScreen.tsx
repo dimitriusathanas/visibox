@@ -1,3 +1,4 @@
+import { FoodIcon } from '../components/FoodIcon';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
@@ -222,7 +223,7 @@ function RecipeCard({ recipe, byId, today, behind }: { recipe: Recipe; byId: Map
       {/* No inner scroller: on the web it would claim sideways swipes. Recipes are kept to 5 short steps. */}
       <View style={{ padding: space.lg, gap: space.md }}>
         <Row gap={space.md}>
-          <Text style={{ fontSize: 44 }}>{recipe.dish.emoji}</Text>
+          <FoodIcon food={{ name: { en: recipe.dish.name_en, bg: recipe.dish.name_bg }, state: 'cooked' }} size={64} />
           <View style={{ flex: 1 }}>
             <Txt variant="h2">{recipe.title}</Txt>
             <Txt variant="small" dim>
@@ -240,7 +241,7 @@ function RecipeCard({ recipe, byId, today, behind }: { recipe: Recipe; byId: Map
             return (
               <Row key={u.itemId} gap={space.sm}>
                 <View style={[styles.dot, { backgroundColor: color }]} />
-                <Text style={{ fontSize: 18 }}>{item?.emoji ?? '•'}</Text>
+                <FoodIcon food={item ?? { name: { en: u.label, bg: u.label } }} size={28} />
                 <Txt style={{ flex: 1, textDecorationLine: item ? 'none' : 'line-through' }} numberOfLines={1}>
                   {u.label}
                 </Txt>
@@ -287,7 +288,7 @@ function LeftoversSheet({ recipe, onClose, onDone }: { recipe: Recipe; onClose: 
       }
     >
       <Row gap={space.md}>
-        <Text style={{ fontSize: 36 }}>{recipe.dish.emoji}</Text>
+        <FoodIcon food={{ state: 'cooked' }} size={56} />
         <Txt variant="h2" style={{ flex: 1 }}>
           {t.lang === 'bg' ? recipe.dish.name_bg : recipe.dish.name_en}
         </Txt>

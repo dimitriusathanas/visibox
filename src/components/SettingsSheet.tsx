@@ -11,6 +11,7 @@ import { useFridge } from '../state/store';
 import { useUi } from '../state/ui';
 import { radius, space, usePalette } from '../theme';
 import { Sheet } from './Sheet';
+import { FoodIcon } from './FoodIcon';
 import { Button, Card, Chip, Row, Txt } from './ui';
 
 export function SettingsSheet() {
@@ -115,13 +116,13 @@ function SettingsBody({ onClose }: { onClose: () => void }) {
             {t('set_activity')}
           </Txt>
           {events.slice(0, 8).map((e) => (
-            <Txt key={e.id} variant="small" dim>
-              {`${e.emoji} ${e.byName ?? (e.by ? t('someone') : t('you'))} ${t(`ev_${e.type}` as StringKey)} ${itemName(e.itemName, t.lang).toLowerCase()} · ${relativeDay(
+            <Row key={e.id} style={{ alignItems: 'flex-start' }}><FoodIcon food={{ name: e.itemName }} size={24} /><Txt variant="small" dim style={{ flex: 1 }}>
+              {`${e.byName ?? (e.by ? t('someone') : t('you'))} ${t(`ev_${e.type}` as StringKey)} ${itemName(e.itemName, t.lang).toLowerCase()} · ${relativeDay(
                 e.at.slice(0, 10),
                 today,
                 t.lang,
               )}`}
-            </Txt>
+            </Txt></Row>
           ))}
         </View>
       )}

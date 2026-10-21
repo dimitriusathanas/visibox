@@ -24,6 +24,14 @@ npx expo start       # on a phone with Expo Go (scan the QR code)
 
 Without a Supabase project the app keeps the fridge on the device and the AI features run as offline stand-ins: a sample receipt, template recipes, and an assistant that understands a few simple sentences. `npm run build:preview` builds that version with a sample fridge preloaded.
 
+### Fridge and assistant UI
+
+The fridge opens as a cabinet: meals at the top, an everyday shelf, raw meat and fish on the lowest shelf, separate produce drawers, door storage, and a freezer drawer below. Food tiles show a consume-by ring; duplicate batches stack using the earliest date. Tap a stack to choose a batch, or switch to List for swipe actions and long-press freezing. Typing a search opens the list automatically. Receipt confirmation returns to the cabinet with a staggered arrival animation that respects reduced motion.
+
+Food illustrations are bundled in `assets/food/` so the same painted icons appear on every platform. Categories provide fallbacks for foods without a specific illustration.
+
+Hold the assistant microphone to see its measured audio waveform. Browsers with speech recognition also show interim words; native devices and browsers without recognition show the server transcript after release in cloud mode. Native live transcription requires a streaming speech integration. Replies include linked food chips and a change card whose Undo applies only to that specific, most recent change. Tap the stop control or microphone to interrupt a spoken reply. Suggestions update with local time.
+
 ## Connect the family fridge (Supabase)
 
 This turns on sign-in, the shared fridge with live sync between phones, and the real AI: Claude reads receipts, writes recipes and runs the assistant; OpenAI transcribes speech; ElevenLabs (or OpenAI) speaks the replies.
@@ -90,6 +98,8 @@ npm test                                 # unit tests: dates, actions, assistant
 npm run typecheck
 npm run build:preview && npm run e2e     # set CHROMIUM_PATH if Chromium isn't at /opt/pw-browsers/chromium
 ```
+
+The UI suite also checks shelf placement, duplicate batches, assistant undo, and time-aware suggestions. Its voice test uses a deterministic recognizer and Chromium's fake microphone, so it checks the UI and capture lifecycle without depending on an external speech service.
 
 The hosted preview is one self-contained page: `npm run build:preview && npm run package:preview` writes `dist/preview.html` and boots it under a strict content security policy as a check.
 

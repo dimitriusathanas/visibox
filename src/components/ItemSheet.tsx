@@ -1,5 +1,6 @@
+import { FoodIcon } from './FoodIcon';
 import { useMemo, useState } from 'react';
-import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, StyleSheet, TextInput, View } from 'react-native';
 
 import { formatDay, formatQty, formatRange, itemName, relativeDay, useT, type StringKey, type T } from '../i18n';
 import { useToday } from '../lib/useToday';
@@ -82,7 +83,7 @@ function ItemSheetBody({ item, onClose }: { item: Item; onClose: () => void }) {
     <Sheet visible onClose={onClose} testID="item-sheet">
       <Row gap={space.md}>
         <View style={[styles.bigEmoji, { backgroundColor: p.surface }]}>
-          <Text style={{ fontSize: 34 }}>{item.emoji}</Text>
+          <FoodIcon food={item} size={56} />
         </View>
         <TextInput
           testID="item-name"

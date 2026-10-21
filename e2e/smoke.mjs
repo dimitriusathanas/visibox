@@ -68,6 +68,7 @@ await sleep(600);
 await shot('01-assistant');
 
 await page.tap('[data-testid="tab-fridge"]');
+await page.tap('[data-testid="fridge-view-list"]');
 await page.waitForSelector('[data-testid^="bucket-"]', { timeout: 10000 });
 await sleep(500);
 await shot('02-fridge');
@@ -133,15 +134,14 @@ if (eggsId) {
 // 4. Vertical scroll still works over rows.
 const scrollTop = () =>
   page.evaluate(() => {
-    const el = [...document.querySelectorAll('div')].find(
-      (d) => d.scrollHeight > d.clientHeight + 50 && getComputedStyle(d).overflowY !== 'visible',
-    );
+    const el = document.querySelector('[data-testid="fridge-scroll"]');
     return el ? el.scrollTop : -1;
   });
 await page.locator('[data-testid^="item-"]').first().evaluate((el) => el.scrollIntoView({ block: 'start' }));
 await sleep(300);
 const before = await scrollTop();
-await drag({ x: 200, y: 600 }, { x: 200, y: 300 }, { steps: 12 });
+const scrollBox = await page.getByTestId('fridge-scroll').boundingBox();
+await drag({ x: 200, y: scrollBox.y + scrollBox.height * 0.5 }, { x: 200, y: scrollBox.y + scrollBox.height * 0.15 }, { steps: 12 });
 await sleep(500);
 const after = await scrollTop();
 check('vertical swipe scrolls the list', after > before, `${before} → ${after}`);

@@ -5,8 +5,11 @@ import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withTiming } from '
 
 import { DragContext, type DragApi } from '../components/drag';
 import { FreezerDrawer } from '../components/FreezerDrawer';
+import { FoodIcon } from '../components/FoodIcon';
+import { FridgeCabinet } from '../components/FridgeCabinet';
 import { Icon } from '../components/Icon';
 import { ItemRow, type SwipeAction } from '../components/ItemRow';
+import { Sheet } from '../components/Sheet';
 import { Button, IconButton, Txt } from '../components/ui';
 import { itemName, relativeDay, useT, type StringKey } from '../i18n';
 import { useToday } from '../lib/useToday';
@@ -30,6 +33,11 @@ export function FridgeScreen({ bottomInset }: { bottomInset: number }) {
   const actions = useItemActions();
   const [query, setQuery] = useState('');
   const [freezerOpen, setFreezerOpen] = useState(false);
+  const [stackIds, setStackIds] = useState<string[]>([]);
+  const view = useUi((s) => s.fridgeView);
+  const setView = useUi((s) => s.setFridgeView);
+  const showList = view === 'list' || Boolean(query.trim());
+  const stackItems = stackIds.map((id) => items.find((i) => i.id === id)).filter((i): i is Item => Boolean(i));
 
   useEffect(() => {
     if (!highlight.length) return;
@@ -132,6 +140,18 @@ export function FridgeScreen({ bottomInset }: { bottomInset: number }) {
           <IconButton testID="fridge-scan" icon="camera" label={t('a11y_scan')} onPress={() => openScan(true)} bg={p.surface} />
         </View>
 
+        <View style={styles.viewControls}>
+          <View style={[styles.viewSwitch, { backgroundColor: p.surfaceAlt, borderColor: p.border }]}>
+            {(['shelves', 'list'] as const).map((mode) => (
+              <Pressable key={mode} testID={`fridge-view-${mode}`} accessibilityRole="button" accessibilityState={{ selected: mode === (showList ? 'list' : 'shelves') }} onPress={() => { setView(mode); if (mode === 'shelves') setQuery(''); }} style={[styles.viewButton, { backgroundColor: mode === (showList ? 'list' : 'shelves') ? p.primary : 'transparent' }]}>
+                <Icon name={mode === 'shelves' ? 'fridge' : 'shelves'} size={16} color={mode === (showList ? 'list' : 'shelves') ? p.primaryText : p.textDim} />
+                <Text style={{ fontSize: 13, fontWeight: '600', color: mode === (showList ? 'list' : 'shelves') ? p.primaryText : p.textDim }}>{t(mode === 'shelves' ? 'fridge_view' : 'list_view')}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <Txt variant="tiny" dim style={{ flexShrink: 1, textAlign: 'right' }}>{t('little_less_waste')}</Txt>
+        </View>
+
         <View style={[styles.search, { backgroundColor: p.surface, borderColor: p.border }]}>
           <Icon name="search" size={18} color={p.textDim} />
           <TextInput
@@ -152,11 +172,26 @@ export function FridgeScreen({ bottomInset }: { bottomInset: number }) {
         </View>
 
         <ScrollView
+          testID="fridge-scroll"
           style={styles.fill}
-          contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: bottomInset + 96 }}
+          contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: bottomInset + (showList ? 96 : 24) }}
           keyboardShouldPersistTaps="handled"
         >
-          {!q && soon.length > 0 && (
+          {!showList && (
+            <>
+              <View style={styles.fridgeIntro}>
+                <Txt variant="h2" style={{ fontSize: 27 }}>{t('fridge_intro')}</Txt>
+                <Txt variant="small" dim>{highlight.length ? t.n('putting_away', highlight.length) : t('fridge_tile_hint')}</Txt>
+              </View>
+              <FridgeCabinet items={fridge} today={today} highlight={highlighted} freezerCount={freezer.length} onFreezer={() => setFreezerOpen(true)} onStack={(rows) => rows.length === 1 ? onPress(rows[0]) : setStackIds(rows.map((i) => i.id))} />
+              <View style={styles.legend}>
+                {(['fresh', 'soon', 'eat'] as const).map((status) => <View key={status} style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}><View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: freshnessColor(p, status) }} /><Txt variant="tiny" dim>{t(`legend_${status}`)}</Txt></View>)}
+              </View>
+              <Txt variant="tiny" dim style={{ textAlign: 'center', marginBottom: 12 }}>{t('ring_hint')}</Txt>
+            </>
+          )}
+
+          {showList && !q && soon.length > 0 && (
             <View style={styles.block}>
               <Txt variant="small" bold dim style={styles.sectionLabel}>
                 {t('use_soon').toUpperCase()}
@@ -172,7 +207,7 @@ export function FridgeScreen({ bottomInset }: { bottomInset: number }) {
                       style={[styles.soonChip, { backgroundColor: p.surface, borderColor: color }]}
                       testID={`soon-${i.id}`}
                     >
-                      <Text style={styles.soonEmoji}>{i.emoji}</Text>
+                      <FoodIcon food={i} size={32} />
                       <View>
                         <Text style={[styles.soonName, { color: p.text }]} numberOfLines={1}>
                           {itemName(i.name, t.lang)}
@@ -188,7 +223,7 @@ export function FridgeScreen({ bottomInset }: { bottomInset: number }) {
             </View>
           )}
 
-          {sections.map(({ bucket, items: rows }) => (
+          {showList && sections.map(({ bucket, items: rows }) => (
             <View key={bucket} style={styles.block} testID={`bucket-${bucket}`}>
               <Txt variant="small" bold dim style={styles.sectionLabel}>
                 {`${t(`bucket_${bucket}` as StringKey).toUpperCase()} · ${rows.length}`}
@@ -216,7 +251,7 @@ export function FridgeScreen({ bottomInset }: { bottomInset: number }) {
 
           {!q && fridge.length === 0 && (
             <Animated.View entering={FadeIn} style={[styles.empty, { backgroundColor: p.surface, borderColor: p.border }]}>
-              <Text style={{ fontSize: 48 }}>🧊</Text>
+              <Icon name="fridge" size={48} color={p.primary} />
               <Txt variant="h2">{t('fridge_empty_title')}</Txt>
               <Txt dim style={{ textAlign: 'center' }}>
                 {t('fridge_empty_body')}
@@ -241,12 +276,18 @@ export function FridgeScreen({ bottomInset }: { bottomInset: number }) {
           freezerTop={freezerTop}
           panelTop={panelTop}
           onPress={onPress}
+          hideBar={!showList}
         />
+
+        {stackItems.length > 0 && <Sheet visible onClose={() => setStackIds([])} title={itemName(stackItems[0].name, t.lang)} testID="stack-sheet">
+          <Txt variant="small" dim>{t('stack_hint')}</Txt>
+          {stackItems.map((i) => <ItemRow key={i.id} item={i} today={today} onPress={(item) => { setStackIds([]); onPress(item); }} />)}
+        </Sheet>}
 
         <Animated.View pointerEvents="none" style={[styles.ghost, { backgroundColor: p.surface, shadowColor: p.shadow }, ghostStyle]}>
           {dragItem && (
             <>
-              <Text style={{ fontSize: 26 }}>{dragItem.emoji}</Text>
+              <FoodIcon food={dragItem} size={36} />
               <Text style={[styles.ghostText, { color: p.text }]} numberOfLines={1}>
                 {itemName(dragItem.name, t.lang)}
               </Text>
@@ -269,6 +310,11 @@ const styles = StyleSheet.create({
     gap: space.md,
   },
   titleWrap: { flex: 1, alignItems: 'center' },
+  viewControls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: space.lg, marginBottom: space.md, gap: 8 },
+  viewSwitch: { flexDirection: 'row', borderRadius: 24, padding: 3, borderWidth: 1 },
+  viewButton: { minHeight: 38, flexDirection: 'row', gap: 6, alignItems: 'center', paddingHorizontal: 13, borderRadius: 20 },
+  fridgeIntro: { gap: 6, paddingVertical: 12, paddingBottom: 20 },
+  legend: { flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 20, marginBottom: 8 },
   search: {
     flexDirection: 'row',
     alignItems: 'center',

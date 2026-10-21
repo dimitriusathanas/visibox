@@ -52,14 +52,25 @@ export function demoAssistant(text: string, items: Item[], uiLang: Lang, ctx: Ac
     q.match(/(?:свършихме|изядохме|изпихме|изхвърлихме|свърши)\s+(.+)/);
   if (finished) {
     const tossed = /threw out|tossed|изхвърлихме/.test(q);
-    const match = findItems(inFridge, finished[1])[0];
-    if (!match) return reply(lang, lang === 'bg' ? `Не намирам „${finished[1]}“ в хладилника.` : `I can't find "${finished[1]}" in the fridge.`);
-    const change = consume(match, 'all', tossed ? 'tossed' : 'eaten', ctx);
-    const label = t(tossed ? 'toast_tossed' : 'toast_ate', { name: name(match) });
+    const matches = findItems(inFridge, finished[1]);
+    if (!matches.length) return reply(lang, lang === 'bg' ? `Не намирам „${finished[1]}“ в хладилника.` : `I can't find "${finished[1]}" in the fridge.`);
+    // One batch per named food, always the earliest date. A sentence may name several foods.
+    const seen = new Set<string>();
+    const selected = matches.filter((item) => {
+      const key = item.foodId || normalizeText(item.name.en);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    const change = selected.reduce<Change>((all, item) => {
+      const next = consume(item, 'all', tossed ? 'tossed' : 'eaten', ctx);
+      return { upserts: [...all.upserts, ...next.upserts], removes: [...all.removes, ...next.removes], events: [...all.events, ...next.events] };
+    }, { upserts: [], removes: [], events: [] });
+    const names = list(selected.map((item) => name(item).toLowerCase()));
     return reply(
       lang,
-      lang === 'bg' ? `Добре, отписах ${name(match).toLowerCase()} от хладилника.` : `Got it, I took the ${name(match).toLowerCase()} off the list.`,
-      [label],
+      lang === 'bg' ? `Добре, отписах ${names} от хладилника.` : `Got it, I took the ${names} off the list.`,
+      selected.map((item) => t(tossed ? 'toast_tossed' : 'toast_ate', { name: name(item) })),
       change,
     );
   }

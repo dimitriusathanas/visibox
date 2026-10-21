@@ -9,6 +9,9 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
     'html, body { overscroll-behavior: none; }',
     'body { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }',
     'input, textarea { user-select: text; -webkit-user-select: text; }',
+    // RNGH 3.3 can reset the detector's pan-y to none when rows re-register.
+    // Keep vertical browser scrolling available while horizontal gestures run in JS.
+    '[data-testid="food-row-swipe"] { touch-action: pan-y !important; }',
   ].join('\n');
   document.head.appendChild(style);
 }

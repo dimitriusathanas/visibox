@@ -14,15 +14,21 @@ const bundles = readdirSync(dir).filter((f) => f.endsWith('.js'));
 if (bundles.length !== 1) throw new Error(`Expected one web bundle, found ${bundles.length}`);
 let js = readFileSync(join(dir, bundles[0]), 'utf8');
 
+// The self-contained preview has no asset server and allows only data/blob images.
+js = js.replace(/uri:"(\/assets\/[^"\\]+\.(png|jpe?g|webp|gif))"/g, (_, url, ext) => {
+  const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : `image/${ext}`;
+  return `uri:${JSON.stringify(`data:${mime};base64,${readFileSync(join('dist', url)).toString('base64')}`)}`;
+});
+
 // Keep the HTML parser from reading anything in the bundle as markup.
 if (/<\/script/i.test(js)) throw new Error('Bundle contains a closing script tag');
 js = js.replaceAll('/<!--/', '/<\\!--/');
 if (js.includes('<!--')) throw new Error('Bundle contains an HTML comment opener outside the known regex');
 
-const page = `<title>Virtual Fridge</title>
+const page = `<title>VisiBox</title>
 <style>
   /* One-screen app: the bundle draws everything; this only sets the ground under it. */
-  :root { --ground: #EEF3F6; }
+  :root { --ground: #F6F4EE; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground: #0C1318; color-scheme: dark; } }
   :root[data-theme="dark"] { --ground: #0C1318; color-scheme: dark; }
   html { box-sizing: border-box; height: 100%; }

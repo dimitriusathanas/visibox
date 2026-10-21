@@ -64,13 +64,15 @@ export function startBrowserTranscription(lang: Lang, onPartial: (text: string) 
         setTimeout(() => done?.(), 1500);
       });
     },
-    cancel: () => rec.abort(),
+    cancel: () => { try { rec.abort(); } catch { /* Already stopped. */ } },
   };
 }
 
 let current: { stop: () => void } | null = null;
+let playbackSequence = 0;
 
 export function stopSpeaking() {
+  playbackSequence++;
   current?.stop();
   current = null;
 }
@@ -78,13 +80,15 @@ export function stopSpeaking() {
 /** Plays the assistant's reply: server audio when present, otherwise the browser's voice. */
 export function speak(text: string, lang: Lang, audio?: { base64: string; mimeType: string }, onEnd?: () => void) {
   stopSpeaking();
+  const sequence = playbackSequence;
+  const finish = () => { if (sequence === playbackSequence) onEnd?.(); };
   if (audio) {
     const uri = `data:${audio.mimeType};base64,${audio.base64}`;
     if (Platform.OS === 'web') {
       const el = new window.Audio(uri);
-      el.onended = () => onEnd?.();
-      el.onerror = () => onEnd?.();
-      void el.play().catch(() => onEnd?.());
+      el.onended = finish;
+      el.onerror = finish;
+      void el.play().catch(finish);
       current = { stop: () => el.pause() };
       return;
     }
@@ -94,7 +98,7 @@ export function speak(text: string, lang: Lang, audio?: { base64: string; mimeTy
         sub.remove();
         player?.remove();
         player = null;
-        onEnd?.();
+        finish();
       }
     });
     player.play();
@@ -112,12 +116,12 @@ export function speak(text: string, lang: Lang, audio?: { base64: string; mimeTy
     u.lang = speechLang(lang);
     const voice = window.speechSynthesis.getVoices().find((v) => v.lang?.toLowerCase().startsWith(lang));
     if (voice) u.voice = voice;
-    u.onend = () => onEnd?.();
-    u.onerror = () => onEnd?.();
+    u.onend = finish;
+    u.onerror = finish;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
     current = { stop: () => window.speechSynthesis.cancel() };
     return;
   }
-  onEnd?.();
+  finish();
 }

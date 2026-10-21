@@ -1,3 +1,4 @@
+import { FoodIcon } from './FoodIcon';
 import { memo, useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { GestureDetector, useCompetingGestures, usePanGesture, useTapGesture } from 'react-native-gesture-handler';
@@ -204,9 +205,9 @@ function ItemRowImpl({ item, today, onPress, right, left, draggable, highlighted
         </Animated.View>
       )}
       <GestureDetector gesture={gesture} touchAction="pan-y" userSelect="none" enableContextMenu={false}>
-        <Animated.View style={[styles.row, { borderColor: p.border }, rowStyle]}>
+        <Animated.View testID="food-row-swipe" style={[styles.row, { borderColor: p.border }, rowStyle]}>
           <View style={[styles.emoji, { backgroundColor: p.surfaceAlt }]}>
-            <Text style={styles.emojiText}>{item.emoji}</Text>
+            <FoodIcon food={item} size={38} />
           </View>
           <View style={styles.middle}>
             <Text style={[styles.name, { color: p.text }]} numberOfLines={1}>

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 
 import { radius, space, usePalette } from '../theme';
 import { Icon, type IconName } from './Icon';
@@ -7,8 +7,8 @@ import { Icon, type IconName } from './Icon';
 type Variant = 'title' | 'h2' | 'body' | 'small' | 'tiny';
 
 const SIZES: Record<Variant, TextStyle> = {
-  title: { fontSize: 24, fontWeight: '700', letterSpacing: -0.3 },
-  h2: { fontSize: 18, fontWeight: '700' },
+  title: { fontFamily: Platform.OS === 'android' ? 'serif' : 'Georgia', fontSize: 27, fontWeight: '500', letterSpacing: -0.6 },
+  h2: { fontFamily: Platform.OS === 'android' ? 'serif' : 'Georgia', fontSize: 20, fontWeight: '500', letterSpacing: -0.3 },
   body: { fontSize: 16 },
   small: { fontSize: 14 },
   tiny: { fontSize: 12 },

@@ -13,12 +13,14 @@ export type Tab = 'assistant' | 'fridge' | 'recipes' | 'pantry';
 
 interface UiState {
   tab: Tab;
+  fridgeView: 'shelves' | 'list';
   itemSheet: string | null;
   addSheet: { location: Location } | null;
   scanSheet: boolean;
   settingsSheet: boolean;
   picker: QuantityRequest | null;
   setTab(tab: Tab): void;
+  setFridgeView(view: 'shelves' | 'list'): void;
   openItem(id: string | null): void;
   openAdd(location: Location | null): void;
   openScan(open: boolean): void;
@@ -28,12 +30,14 @@ interface UiState {
 
 export const useUi = create<UiState>((set) => ({
   tab: 'assistant',
+  fridgeView: 'shelves',
   itemSheet: null,
   addSheet: null,
   scanSheet: false,
   settingsSheet: false,
   picker: null,
   setTab: (tab) => set({ tab }),
+  setFridgeView: (fridgeView) => set({ fridgeView }),
   openItem: (id) => set({ itemSheet: id }),
   openAdd: (location) => set({ addSheet: location ? { location } : null }),
   openScan: (open) => set({ scanSheet: open }),

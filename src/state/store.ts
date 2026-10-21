@@ -18,6 +18,7 @@ export interface Toast {
 }
 
 interface UndoEntry {
+  id: string;
   before: Item[];
   createdIds: string[];
   eventIds: string[];
@@ -29,6 +30,10 @@ export interface VoiceTurn {
   role: 'user' | 'assistant';
   text: string;
   actions?: string[];
+  items?: Pick<Item, 'id' | 'name' | 'bucket' | 'state' | 'pantryGroup'>[];
+  changedCount?: number;
+  changeId?: string;
+  undone?: boolean;
 }
 
 export interface RecipesState {
@@ -56,7 +61,7 @@ export interface FridgeState {
   init(): Promise<void>;
   ctx(): ActionContext;
   /** Applies a change from shared/transitions, saves it, and offers undo. */
-  run(change: Change, toast?: { message: string; tossMessage?: string }): void;
+  run(change: Change, toast?: { message: string; tossMessage?: string }, options?: { beforeItems: Item[] }): void;
   /** Applies a change someone else already saved (the voice assistant in cloud mode). */
   applySaved(change: Change): void;
   undoLast(): void;
@@ -133,10 +138,12 @@ export const useFridge = create<FridgeState>((set, get) => {
       };
     },
 
-    run(change, toast) {
+    run(change, toast, options) {
       if (!change.upserts.length && !change.removes.length && !change.events.length) return;
       const s = get();
-      const prev = new Map(s.items.map((i) => [i.id, i]));
+      // A cloud assistant response can arrive after its realtime echo. Retain
+      // the pre-request snapshot so Undo restores the actual previous values.
+      const prev = new Map((options?.beforeItems ?? s.items).map((i) => [i.id, i]));
       const before = [...change.upserts.map((u) => prev.get(u.id)), ...change.removes.map((id) => prev.get(id))].filter(
         (i): i is Item => Boolean(i),
       );
@@ -146,6 +153,7 @@ export const useFridge = create<FridgeState>((set, get) => {
         items: applyChange(s.items, change),
         events: [...change.events, ...s.events].slice(0, MAX_EVENTS),
         undo: {
+          id: newId(),
           before,
           createdIds,
           eventIds: change.events.map((e) => e.id),
@@ -172,6 +180,7 @@ export const useFridge = create<FridgeState>((set, get) => {
         events: s.events.filter((e) => !drop.has(e.id)),
         undo: null,
         toast: null,
+        voice: s.voice.map((v) => v.changeId === u.id ? { ...v, undone: true } : v),
       });
       commit(change, { deletedEventIds: u.eventIds });
     },

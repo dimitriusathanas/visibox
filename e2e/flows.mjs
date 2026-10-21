@@ -155,6 +155,7 @@ if (card) {
 }
 await page.tap('[data-testid="tab-fridge"]');
 await sleep(400);
+await page.tap('[data-testid="fridge-view-list"]');
 const cookedBucket = await text('[data-testid="bucket-cooked"]');
 check('leftovers appear in Cooked at home', cookedBucket.split('\n').length > 2, cookedBucket.split('\n')[0]);
 

@@ -1,3 +1,4 @@
+import { FoodIcon } from './FoodIcon';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -146,7 +147,7 @@ function AddSheetBody({ initialLocation, onClose }: { initialLocation: Location;
                 onPress={() => choose(s)}
                 style={({ pressed }) => [styles.suggestion, { borderColor: p.border, opacity: pressed ? 0.6 : 1 }]}
               >
-                <Text style={{ fontSize: 20 }}>{s.common?.emoji ?? emojiForBucket(bucketForFood(s.food))}</Text>
+                <FoodIcon food={{ name: { en: s.common?.en ?? s.food?.name ?? s.label, bg: s.label }, bucket: s.common?.bucket ?? bucketForFood(s.food) }} size={34} />
                 <Text style={{ color: p.text, fontSize: 16, flex: 1 }} numberOfLines={1}>
                   {s.label}
                   {s.common && (

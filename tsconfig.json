@@ -4,5 +4,5 @@
     "strict": true,
     "allowImportingTsExtensions": true
   },
-  "exclude": ["supabase/functions"]
+  "exclude": ["supabase/functions", "dist", "e2e/screens"]
 }

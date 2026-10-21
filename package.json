@@ -43,7 +43,7 @@
     "typecheck": "tsc --noEmit",
     "build:web": "expo export --platform web --output-dir dist",
     "build:preview": "EXPO_PUBLIC_PREVIEW=1 expo export --platform web --output-dir dist",
-    "e2e": "node e2e/smoke.mjs && node e2e/flows.mjs",
+    "e2e": "node e2e/smoke.mjs && node e2e/flows.mjs && node e2e/polish.mjs",
     "sync:shared": "node scripts/sync-shared.mjs",
     "data:foodkeeper": "node scripts/build-foodkeeper.mjs && node scripts/sync-shared.mjs",
     "lint": "expo lint",

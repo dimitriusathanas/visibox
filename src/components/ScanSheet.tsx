@@ -1,7 +1,8 @@
+import { FoodIcon } from './FoodIcon';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
 
 import { formatDay, formatQty, useT, type StringKey } from '../i18n';
 import { newId } from '../lib/ids';
@@ -23,7 +24,7 @@ type Step =
   | { kind: 'failed'; message: string };
 
 const DESTS: Destination[] = ['fridge', 'freezer', 'pantry', 'household', 'skip'];
-const DEST_EMOJI: Record<Destination, string> = { fridge: '🧊', freezer: '❄️', pantry: '🥫', household: '🧻', skip: '✖️' };
+const DEST_ICON = { fridge: 'fridge', freezer: 'snow', pantry: 'shelves', household: 'shelves', skip: 'x' } as const;
 
 const pair = (a: number[] | null | undefined): Days | undefined =>
   a && a.length >= 2 && a.every((n) => Number.isFinite(n) && n >= 0) ? [a[0], a[1]] : undefined;
@@ -86,6 +87,7 @@ function ScanSheetBody({ onClose }: { onClose: () => void }) {
   const run = useFridge((s) => s.run);
   const ctx = useFridge((s) => s.ctx);
   const setTab = useUi((s) => s.setTab);
+  const setFridgeView = useUi((s) => s.setFridgeView);
   const [step, setStep] = useState<Step>({ kind: 'pick' });
   const [lines, setLines] = useState<ReceiptLine[]>([]);
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -129,6 +131,7 @@ function ScanSheetBody({ onClose }: { onClose: () => void }) {
     if (step.kind !== 'review') return;
     const inputs = toNewItems(step.parse, lines, newId());
     run(addItems(inputs, ctx()), { message: t.n('toast_added', inputs.length) });
+    setFridgeView('shelves');
     onClose();
     setTab(counts.fridge || counts.freezer ? 'fridge' : 'pantry');
   }
@@ -152,7 +155,7 @@ function ScanSheetBody({ onClose }: { onClose: () => void }) {
     >
       {step.kind === 'pick' && (
         <View style={{ gap: space.lg, alignItems: 'center' }}>
-          <Text style={{ fontSize: 56 }}>🧾</Text>
+          <Icon name="camera" size={56} color={p.primary} />
           <Txt dim style={{ textAlign: 'center' }}>
             {t('scan_tip')}
           </Txt>
@@ -183,7 +186,7 @@ function ScanSheetBody({ onClose }: { onClose: () => void }) {
 
       {step.kind === 'failed' && (
         <View style={{ alignItems: 'center', gap: space.lg }}>
-          <Text style={{ fontSize: 48 }}>🤔</Text>
+          <Icon name="image" size={48} color={p.textDim} />
           <Txt style={{ textAlign: 'center' }}>{step.message}</Txt>
           <Button label={t('scan_retake')} icon="camera" onPress={() => setStep({ kind: 'pick' })} style={{ alignSelf: 'stretch' }} />
         </View>
@@ -201,7 +204,7 @@ function ScanSheetBody({ onClose }: { onClose: () => void }) {
             <View style={styles.counts}>
               {DESTS.filter((d) => counts[d]).map((d) => (
                 <View key={d} style={[styles.count, { backgroundColor: p.surfaceAlt }]}>
-                  <Text style={{ fontSize: 14 }}>{DEST_EMOJI[d]}</Text>
+                  <Icon name={DEST_ICON[d]} size={16} color={p.primary} />
                   <Txt variant="small" bold>{`${d === 'skip' ? t('scan_skipped') : t(`dest_${d}` as StringKey)} ${counts[d]}`}</Txt>
                 </View>
               ))}
@@ -231,7 +234,7 @@ function ScanSheetBody({ onClose }: { onClose: () => void }) {
                   testID={`scan-line-${i}`}
                 >
                   <Row>
-                    <Text style={{ fontSize: 22 }}>{l.emoji}</Text>
+                    <FoodIcon food={{ name: { en: l.name_en, bg: l.name_bg }, bucket: l.bucket, pantryGroup: l.destination === 'household' ? 'household' : 'food' }} size={38} />
                     <View style={{ flex: 1 }}>
                       <Txt bold numberOfLines={1}>
                         {t.lang === 'bg' ? l.name_bg : l.name_en}
@@ -241,7 +244,7 @@ function ScanSheetBody({ onClose }: { onClose: () => void }) {
                       </Txt>
                     </View>
                     <Txt variant="small" bold color={skipped ? p.textDim : p.primary}>
-                      {DEST_EMOJI[l.destination]}
+                      {t(`dest_${l.destination}` as StringKey)}
                     </Txt>
                   </Row>
                   {unsure && (
@@ -255,7 +258,7 @@ function ScanSheetBody({ onClose }: { onClose: () => void }) {
                   {expanded === i && (
                     <View style={styles.dests}>
                       {DESTS.map((d) => (
-                        <Chip key={d} label={`${DEST_EMOJI[d]} ${t(`dest_${d}` as StringKey)}`} selected={l.destination === d} onPress={() => setDest(i, d)} />
+                        <Chip key={d} label={t(`dest_${d}` as StringKey)} selected={l.destination === d} onPress={() => setDest(i, d)} />
                       ))}
                     </View>
                   )}

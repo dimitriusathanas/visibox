@@ -24,6 +24,7 @@ interface Props {
   freezerTop: SharedValue<number>;
   panelTop: SharedValue<number>;
   onPress: (item: Item) => void;
+  hideBar?: boolean;
 }
 
 /** The freezer: a bar at the bottom of the fridge that items are dragged onto, and a panel that slides up. */
@@ -39,6 +40,7 @@ export function FreezerDrawer({
   freezerTop,
   panelTop,
   onPress,
+  hideBar = false,
 }: Props) {
   const t = useT();
   const p = usePalette();
@@ -75,7 +77,7 @@ export function FreezerDrawer({
 
   return (
     <>
-      <Animated.View
+      {!hideBar && <Animated.View
         ref={bar}
         onLayout={measureBar}
         style={[styles.bar, { borderColor: p.freezer }, dragFromFridge && styles.barDragging, over]}
@@ -103,7 +105,7 @@ export function FreezerDrawer({
           </View>
           {!dragFromFridge && <Icon name="up" size={22} color={p.freezer} />}
         </Pressable>
-      </Animated.View>
+      </Animated.View>}
 
       {open && (
         <>

@@ -18,8 +18,13 @@ page.on('console', (m) => (m.type() === 'error' || /Content Security Policy/.tes
 await page.goto(`http://127.0.0.1:${server.address().port}/`);
 await page.waitForSelector('[data-testid="mic"]', { timeout: 20000 });
 await page.tap('[data-testid="tab-fridge"]');
-await page.waitForSelector('[data-testid^="bucket-"]');
+await page.waitForSelector('[data-testid="fridge-cabinet"]');
+await page.waitForFunction(() => {
+  const images = [...document.querySelectorAll('img')];
+  return images.length > 0 && images.every((img) => img.complete && img.naturalWidth > 0);
+});
 await page.screenshot({ path: process.argv[3] });
 console.log(problems.length ? problems.join('\n') : 'booted with no errors');
+if (problems.length) process.exitCode = 1;
 await browser.close();
 server.close();
